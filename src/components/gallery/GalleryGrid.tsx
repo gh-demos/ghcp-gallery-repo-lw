@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Heart, Download, Share2, Eye, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Photo, mockPhotos } from '@/lib/mock-photo-data';
@@ -13,6 +14,7 @@ interface GalleryGridProps {
   selectedTags?: string[];
   searchQuery?: string;
   currentPage?: number;
+  viewMode?: 'grid' | 'list';
 }
 
 export function GalleryGrid({ 
@@ -22,10 +24,12 @@ export function GalleryGrid({
   isLoading = false,
   selectedTags = [],
   searchQuery = "",
-  currentPage = 1
+  currentPage = 1,
+  viewMode = 'grid'
 }: GalleryGridProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set());
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   // Filter photos based on selected tags and search query
   const filteredPhotos = mockPhotos.filter(photo => {
@@ -46,7 +50,7 @@ export function GalleryGrid({
   const totalPhotos = filteredPhotos.length;
   const photosPerPage = limit;
   const totalPages = Math.ceil(totalPhotos / photosPerPage);
-  const startIndex = 0;
+  const startIndex = (currentPage - 1) * photosPerPage;
   const endIndex = currentPage * photosPerPage;
   const displayedPhotos = filteredPhotos.slice(startIndex, endIndex);
   const hasMore = endIndex < totalPhotos;
@@ -63,37 +67,60 @@ export function GalleryGrid({
     });
   };
 
+  const handleImageError = (photoId: string) => {
+    setImageErrors(prev => new Set(prev).add(photoId));
+  };
+
+  useEffect(() => {
+    if (!selectedPhoto) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedPhoto(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPhoto]);
+
   return (
     <div className={`w-full ${className}`}>
       {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
         {displayedPhotos.map((photo, index) => (
           <motion.div
             key={photo.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="group relative card-elevated overflow-hidden"
+            className={`group relative card-elevated overflow-hidden ${viewMode === 'list' ? 'md:flex' : ''}`}
           >
             {/* Photo Container */}
-            <div className="relative aspect-[4/3] overflow-hidden">
-              {/* Placeholder colored rectangles since we don't have actual images */}
-              <div 
-                className={`w-full h-full ${
-                  index % 6 === 0 ? 'bg-gradient-to-br from-blue-400 to-blue-600' :
-                  index % 6 === 1 ? 'bg-gradient-to-br from-green-400 to-green-600' :
-                  index % 6 === 2 ? 'bg-gradient-to-br from-purple-400 to-purple-600' :
-                  index % 6 === 3 ? 'bg-gradient-to-br from-pink-400 to-pink-600' :
-                  index % 6 === 4 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
-                  'bg-gradient-to-br from-red-400 to-red-600'
-                }`}
-              />
+            <div className={`relative overflow-hidden ${viewMode === 'list' ? 'aspect-[4/3] md:aspect-auto md:w-64 md:shrink-0' : 'aspect-[4/3]'}`}>
+              {photo.url && !imageErrors.has(photo.id) ? (
+                <Image
+                  src={photo.url}
+                  alt={photo.title}
+                  fill
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={() => handleImageError(photo.id)}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 dark:from-slate-700 dark:to-slate-900">
+                  <Eye className="h-10 w-10 text-white/80" />
+                </div>
+              )}
               
               {/* Overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300">
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <button
                     onClick={() => setSelectedPhoto(photo)}
+                    aria-label={`View details for ${photo.title}`}
                     className="btn-secondary"
                   >
                     View Details
@@ -105,6 +132,7 @@ export function GalleryGrid({
               <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <button
                   onClick={() => toggleLike(photo.id)}
+                  aria-label={`${likedPhotos.has(photo.id) ? 'Unlike' : 'Like'} ${photo.title}`}
                   className={`p-2 rounded-full backdrop-blur-sm transition-colors ${
                     likedPhotos.has(photo.id)
                       ? 'bg-red-500 text-white'
@@ -113,17 +141,23 @@ export function GalleryGrid({
                 >
                   <Heart className={`h-4 w-4 ${likedPhotos.has(photo.id) ? 'fill-current' : ''}`} />
                 </button>
-                <button className="p-2 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 backdrop-blur-sm transition-colors">
+                <button
+                  aria-label={`Download ${photo.title}`}
+                  className="p-2 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 backdrop-blur-sm transition-colors"
+                >
                   <Download className="h-4 w-4" />
                 </button>
-                <button className="p-2 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 backdrop-blur-sm transition-colors">
+                <button
+                  aria-label={`Share ${photo.title}`}
+                  className="p-2 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 backdrop-blur-sm transition-colors"
+                >
                   <Share2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
             {/* Photo Info */}
-            <div className="p-4">
+            <div className="p-4 flex-1">
               <h3 className="font-semibold text-slate-900 dark:text-white mb-2 truncate">
                 {photo.title}
               </h3>
@@ -201,10 +235,10 @@ export function GalleryGrid({
             disabled={isLoading}
             className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Loading...' : 'Load More Photos'}
+            {isLoading ? 'Loading...' : 'Next Page'}
           </button>
           <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Showing {displayedPhotos.length} of {totalPhotos} photos
+            Page {currentPage} of {totalPages}
           </div>
         </div>
       )}
@@ -212,20 +246,81 @@ export function GalleryGrid({
       {/* Photo Detail Modal - Placeholder for future implementation */}
       {selectedPhoto && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="photo-detail-title"
+            className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto"
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">{selectedPhoto.title}</h2>
+                <h2 id="photo-detail-title" className="text-2xl font-bold">{selectedPhoto.title}</h2>
                 <button
                   onClick={() => setSelectedPhoto(null)}
+                  aria-label="Close photo details"
                   className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 >
                   ✕
                 </button>
               </div>
-              <p className="text-slate-600 dark:text-slate-400">
-                Photo details and larger view would be implemented here.
-              </p>
+              <div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-700">
+                  {selectedPhoto.url && !imageErrors.has(selectedPhoto.id) ? (
+                    <Image
+                      src={selectedPhoto.url}
+                      alt={selectedPhoto.title}
+                      fill
+                      sizes="(min-width: 768px) 60vw, 100vw"
+                      className="object-cover"
+                      onError={() => handleImageError(selectedPhoto.id)}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 dark:from-slate-700 dark:to-slate-900">
+                      <Eye className="h-12 w-12 text-white/80" />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-4">
+                  {selectedPhoto.photographer && (
+                    <p className="text-slate-600 dark:text-slate-300">
+                      Photographer: <span className="font-medium text-slate-900 dark:text-white">{selectedPhoto.photographer}</span>
+                    </p>
+                  )}
+                  {selectedPhoto.dateTaken && (
+                    <p className="text-slate-600 dark:text-slate-300">
+                      Date taken: <span className="font-medium text-slate-900 dark:text-white">{selectedPhoto.dateTaken}</span>
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPhoto.tags.map(tag => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded-full"
+                      >
+                        <Tag className="h-3 w-3" />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="card-base p-3">
+                      <Heart className="h-5 w-5 mx-auto mb-1 text-red-500" />
+                      <div className="font-semibold text-slate-900 dark:text-white">{selectedPhoto.likes + (likedPhotos.has(selectedPhoto.id) ? 1 : 0)}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">Likes</div>
+                    </div>
+                    <div className="card-base p-3">
+                      <Eye className="h-5 w-5 mx-auto mb-1 text-blue-500" />
+                      <div className="font-semibold text-slate-900 dark:text-white">{selectedPhoto.views}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">Views</div>
+                    </div>
+                    <div className="card-base p-3">
+                      <Download className="h-5 w-5 mx-auto mb-1 text-green-500" />
+                      <div className="font-semibold text-slate-900 dark:text-white">{selectedPhoto.downloads}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">Downloads</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
