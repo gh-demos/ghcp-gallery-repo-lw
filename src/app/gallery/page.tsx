@@ -12,6 +12,7 @@ export default function GalleryPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const filterRef = useRef<HTMLDivElement>(null);
 
   // Close filter dropdown when clicking outside
@@ -141,10 +142,20 @@ export default function GalleryPage() {
               </div>
               
               <div className="flex border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden">
-                <button className="p-2 bg-blue-500 text-white">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  aria-label="Show gallery as grid"
+                  aria-pressed={viewMode === 'grid'}
+                  className={`p-2 ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'}`}
+                >
                   <Grid className="h-4 w-4" />
                 </button>
-                <button className="p-2 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600">
+                <button
+                  onClick={() => setViewMode('list')}
+                  aria-label="Show gallery as list"
+                  aria-pressed={viewMode === 'list'}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'}`}
+                >
                   <List className="h-4 w-4" />
                 </button>
               </div>
@@ -190,6 +201,7 @@ export default function GalleryPage() {
           isLoading={isLoading}
           selectedTags={selectedTags}
           searchQuery={searchQuery}
+          viewMode={viewMode}
         />
       </SectionContainer>
     </div>
