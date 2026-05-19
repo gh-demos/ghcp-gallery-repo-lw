@@ -1,7 +1,11 @@
+'use client';
+
+import { lazy, Suspense } from 'react';
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
-import { UploadZone } from "@/components/upload/UploadZone";
 import { Hero, SectionContainer, SectionTitle, FeatureCard } from "@/components/ui";
 import { featureCardsData } from "@/lib/mock-feature-card-data";
+
+const UploadZone = lazy(() => import("@/components/upload/UploadZone").then(mod => ({ default: mod.UploadZone })));
 
 export default function Home() {
   return (
@@ -30,7 +34,9 @@ export default function Home() {
       {/* Quick Upload Section */}
       <SectionContainer bgColor="bg-white/30 dark:bg-slate-800/30">
         <SectionTitle title="Quick Upload" className="text-center mb-12" />
-        <UploadZone />
+        <Suspense fallback={<div className="h-64 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />}>
+          <UploadZone />
+        </Suspense>
       </SectionContainer>
 
       {/* Recent Gallery Preview */}
