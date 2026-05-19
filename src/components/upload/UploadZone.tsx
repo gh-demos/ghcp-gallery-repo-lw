@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { Upload, X, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface UploadedFile {
@@ -21,6 +21,16 @@ interface UploadZoneProps {
 
 export function UploadZone({ onUpload, maxFiles = 10, className = "" }: UploadZoneProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const intervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    const intervals = intervalsRef.current;
+    return () => {
+      intervals.forEach(interval => clearInterval(interval));
+      intervals.clear();
+    };
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map(file => ({
@@ -33,7 +43,7 @@ export function UploadZone({ onUpload, maxFiles = 10, className = "" }: UploadZo
 
     setUploadedFiles(prev => [...prev, ...newFiles]);
 
-    // Simulate upload progress
+    // Simulate upload progress with centralized interval management
     newFiles.forEach(fileObj => {
       const interval = setInterval(() => {
         setUploadedFiles(prev => 
@@ -44,9 +54,15 @@ export function UploadZone({ onUpload, maxFiles = 10, className = "" }: UploadZo
           )
         );
       }, 200);
+      
+      intervalsRef.current.set(fileObj.id, interval);
 
       setTimeout(() => {
-        clearInterval(interval);
+        const interval = intervalsRef.current.get(fileObj.id);
+        if (interval) {
+          clearInterval(interval);
+          intervalsRef.current.delete(fileObj.id);
+        }
         setUploadedFiles(prev => 
           prev.map(f => 
             f.id === fileObj.id 
@@ -70,6 +86,11 @@ export function UploadZone({ onUpload, maxFiles = 10, className = "" }: UploadZo
   });
 
   const removeFile = (id: string) => {
+    const interval = intervalsRef.current.get(id);
+    if (interval) {
+      clearInterval(interval);
+      intervalsRef.current.delete(id);
+    }
     setUploadedFiles(prev => {
       const file = prev.find(f => f.id === id);
       if (file) {
@@ -137,6 +158,7 @@ export function UploadZone({ onUpload, maxFiles = 10, className = "" }: UploadZo
                   </button>
                   
                   <div className="relative aspect-square mb-3 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={fileObj.preview} 
                       alt={fileObj.file.name}

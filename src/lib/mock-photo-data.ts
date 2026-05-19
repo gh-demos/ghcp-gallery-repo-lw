@@ -109,5 +109,38 @@ export const mockPhotos: Photo[] = [
     views: 4321,
     photographer: 'Tom Anderson',
     dateTaken: '2023-12-20'
+  },
+  {
+    id: '10',
+    url: '/placeholder-10.jpg',
+    title: 'Coastal Sunrise',
+    tags: ['landscape', 'ocean', 'sunrise', 'nature'],
+    likes: 176,
+    downloads: 64,
+    views: 1932,
+    photographer: 'Rachel Green',
+    dateTaken: '2024-02-14'
+  },
+  {
+    id: '11',
+    url: '/placeholder-11.jpg',
+    title: 'Modern Glass Tower',
+    tags: ['architecture', 'city', 'urban', 'building'],
+    likes: 221,
+    downloads: 88,
+    views: 2675,
+    photographer: 'Daniel Brooks',
+    dateTaken: '2024-03-02'
+  },
+  {
+    id: '12',
+    url: '/placeholder-12.jpg',
+    title: 'Forest Trail Portrait',
+    tags: ['portrait', 'forest', 'outdoor', 'nature'],
+    likes: 143,
+    downloads: 52,
+    views: 1589,
+    photographer: 'Sophie Turner',
+    dateTaken: '2024-03-18'
   }
 ];
