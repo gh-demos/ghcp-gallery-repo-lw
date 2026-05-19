@@ -15,6 +15,27 @@ export const metadata: Metadata = {
   description: "A curated collection of photographs and creative works showcasing a personal portfolio.",
 };
 
+const THEME_INIT_SCRIPT = `
+  (function () {
+    try {
+      var key = "theme";
+      var theme = localStorage.getItem(key);
+      if (theme !== "light" && theme !== "dark" && theme !== "system") {
+        theme = "system";
+      }
+
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var isDark = theme === "dark" || (theme === "system" && prefersDark);
+      var root = document.documentElement;
+
+      root.classList.toggle("dark", isDark);
+      root.classList.toggle("light", !isDark);
+      root.style.colorScheme = isDark ? "dark" : "light";
+      root.setAttribute("data-theme", theme);
+    } catch (e) {}
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +46,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var k='theme';var t=localStorage.getItem(k);if(t!=='light'&&t!=='dark'&&t!=='system'){t='system'}var d=window.matchMedia('(prefers-color-scheme: dark)').matches;var s=t==='dark'||(t==='system'&&d);var r=document.documentElement;r.classList.toggle('dark',s);r.classList.toggle('light',!s);r.style.colorScheme=s?'dark':'light';r.setAttribute('data-theme',t);}catch(e){}})();`,
+            __html: THEME_INIT_SCRIPT,
           }}
         />
       </head>

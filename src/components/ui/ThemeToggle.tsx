@@ -6,6 +6,11 @@ import { Monitor, Moon, Sun } from "lucide-react";
 type ThemeMode = "light" | "dark" | "system";
 
 const STORAGE_KEY = "theme";
+const THEME_ICON = {
+  light: Sun,
+  dark: Moon,
+  system: Monitor,
+} as const;
 
 function applyTheme(theme: ThemeMode) {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -25,11 +30,10 @@ export function ThemeToggle() {
     const savedTheme = localStorage.getItem(STORAGE_KEY);
     if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
       setTheme(savedTheme);
-      applyTheme(savedTheme);
-      return;
+      if (document.documentElement.getAttribute("data-theme") !== savedTheme) {
+        applyTheme(savedTheme);
+      }
     }
-
-    applyTheme("system");
   }, []);
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export function ThemeToggle() {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
 
-  const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
+  const Icon = THEME_ICON[theme];
 
   return (
     <div className="flex items-center gap-2">
