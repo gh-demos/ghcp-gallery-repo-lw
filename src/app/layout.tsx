@@ -17,22 +17,24 @@ export const metadata: Metadata = {
 
 const THEME_INIT_SCRIPT = `
   (function () {
+    var key = "theme";
+    var theme = "system";
+
     try {
-      var key = "theme";
-      var theme = localStorage.getItem(key);
-      if (theme !== "light" && theme !== "dark" && theme !== "system") {
-        theme = "system";
+      var storedTheme = localStorage.getItem(key);
+      if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") {
+        theme = storedTheme;
       }
-
-      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      var isDark = theme === "dark" || (theme === "system" && prefersDark);
-      var root = document.documentElement;
-
-      root.classList.toggle("dark", isDark);
-      root.classList.toggle("light", !isDark);
-      root.style.colorScheme = isDark ? "dark" : "light";
-      root.setAttribute("data-theme", theme);
     } catch (e) {}
+
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var isDark = theme === "dark" || (theme === "system" && prefersDark);
+    var root = document.documentElement;
+
+    root.classList.toggle("dark", isDark);
+    root.classList.toggle("light", !isDark);
+    root.style.colorScheme = isDark ? "dark" : "light";
+    root.setAttribute("data-theme", theme);
   })();
 `;
 
