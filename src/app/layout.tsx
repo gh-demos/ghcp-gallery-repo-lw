@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
 import { Camera } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,13 +15,43 @@ export const metadata: Metadata = {
   description: "A curated collection of photographs and creative works showcasing a personal portfolio.",
 };
 
+const THEME_INIT_SCRIPT = `
+  (function () {
+    var key = "theme";
+    var theme = "system";
+
+    try {
+      var storedTheme = localStorage.getItem(key);
+      if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") {
+        theme = storedTheme;
+      }
+    } catch (e) {}
+
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var isDark = theme === "dark" || (theme === "system" && prefersDark);
+    var root = document.documentElement;
+
+    root.classList.toggle("dark", isDark);
+    root.classList.toggle("light", !isDark);
+    root.style.colorScheme = isDark ? "dark" : "light";
+    root.setAttribute("data-theme", theme);
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: THEME_INIT_SCRIPT,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} antialiased`}
       >
@@ -44,6 +75,7 @@ export default function RootLayout({
                 <Link href="/admin" className="btn-primary">
                   Admin
                 </Link>
+                <ThemeToggle />
               </nav>
             </div>
           </div>
