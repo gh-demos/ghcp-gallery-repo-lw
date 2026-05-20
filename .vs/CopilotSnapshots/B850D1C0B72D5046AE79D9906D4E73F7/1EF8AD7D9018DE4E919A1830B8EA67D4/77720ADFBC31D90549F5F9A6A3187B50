@@ -1,0 +1,98 @@
+﻿---
+mode: 'agent'
+description: 'Generate unit tests for UI components following project patterns'
+tools: ['codebase', 'editFiles']
+---
+
+# Generate Unit Tests for UI Components
+
+## Context
+Create unit tests for UI components in the Photo Gallery & Portfolio application following established project patterns and conventions.
+
+## Project Patterns to Follow
+- Use TypeScript with strict types
+- Test component behavior through public props and rendered output
+- Follow the existing component-driven architecture in `src/components/`
+- Prefer readable, focused tests over implementation-detail assertions
+- Cover accessibility-friendly rendering and user-visible behavior
+- Reuse mock data patterns from `src/lib/` where appropriate
+- Keep tests aligned with Next.js 15 and React 19 component usage
+
+## Test Generation Requirements
+1. Create tests for rendering, props, and visible state changes
+2. Verify important text, labels, links, icons, and interactive behavior
+3. Include accessibility-oriented assertions where practical
+4. Mock framework-specific dependencies only when necessary
+5. Use clear test names that describe expected behavior
+6. Keep test files colocated or placed in a consistent test folder pattern
+7. Export or reuse helper data only when it improves readability
+8. Avoid testing Tailwind implementation details unless they represent meaningful UI state
+
+## Test Scope Guidance
+Generate tests for UI components such as:
+- `src/components/ui/cards/FeatureCard.tsx`
+- `src/components/ui/layout/Hero.tsx`
+- `src/components/ui/layout/SectionContainer.tsx`
+- `src/components/ui/layout/SectionTitle.tsx`
+- `src/components/ui/stats/StatsGrid.tsx`
+- Other reusable UI components in `src/components/ui/`
+
+Focus on:
+- Correct rendering from props
+- Conditional UI behavior
+- Accessible names and semantics
+- Link destinations
+- Callback execution for interactive components
+- Empty, loading, or alternate states when supported
+
+## Framework Detection Instructions
+Before generating tests:
+1. Check the repo for an existing test framework and configuration
+2. If a framework already exists, follow the current project setup exactly
+3. If no framework exists, generate the tests and include the minimal setup needed
+4. Prefer a modern React component testing stack compatible with this repo
+5. Add only the minimum required dependencies and configuration
+
+## Suggested Test Stack If Missing
+If the repository does not already include a test framework, prefer:
+- Vitest
+- React Testing Library
+- `@testing-library/jest-dom`
+- `jsdom`
+
+## Output Requirements
+When generating unit tests:
+1. Create the test file(s)
+2. Add any required test setup file(s)
+3. Add or update scripts in `package.json` if needed
+4. Include minimal config only if missing
+5. Keep changes scoped to unit test support for the requested UI component(s)
+6. Run or suggest the relevant test command if available
+
+## Example Requests
+- Generate unit tests for `FeatureCard.tsx`
+- Add tests for all layout components in `src/components/ui/layout/`
+- Create tests for `StatsGrid` including empty or varied stats input
+- Add a test setup for UI component testing and generate the first component test
+
+## Example Validation Areas
+For `FeatureCard.tsx`, test cases may include:
+- Renders the title and description
+- Renders the provided icon
+- Applies the expected icon color mapping behavior
+- Preserves custom icon color values when no preset mapping applies
+
+For `SectionTitle.tsx`, test cases may include:
+- Renders the title text
+- Renders the view-all link only when `viewAllLink` is provided
+- Renders children content when supplied
+
+## Example Usage Pattern
+```tsx
+Generate unit tests for `src/components/ui/cards/FeatureCard.tsx`.
+Use the repo's existing test framework if present.
+If none exists, add the minimum setup required for Vitest and React Testing Library.
+Cover rendering, prop handling, and accessible output.
+```
+
+Generate unit tests that follow these instructions and keep the implementation consistent with the existing codebase.
