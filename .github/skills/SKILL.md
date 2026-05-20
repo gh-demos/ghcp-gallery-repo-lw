@@ -27,7 +27,7 @@ This skill applies to:
 - Finish with recent activity or recent galleries tables
 
 ### Admin Gallery Management
-- Use typed data models from `src/lib/admin-types.ts`
+- Use typed data models from `src/lib/mock-admin-data.ts` or a nearby shared types file
 - Prefer reusable table components for gallery lists
 - Keep row actions accessible and clearly labeled
 
@@ -38,7 +38,7 @@ This skill applies to:
 - Prefer single-purpose steps or sections for multi-step admin workflows
 
 ## Data and Type Rules
-- Define admin types in `src/lib/admin-types.ts` or a nearby shared types file
+- Define admin types in `src/lib/mock-admin-data.ts` or a nearby shared types file
 - Use strict string unions for gallery types and statuses
 - Keep mock admin data in `src/lib/mock-admin-data.ts`
 - Reuse existing admin types rather than creating duplicate shapes
@@ -84,7 +84,7 @@ Before finishing admin-workflow changes:
 When asking for admin workflow work, reference this skill explicitly in the prompt:
 
 ```text
-Use .github/skills/admin-workflows/SKILL.md to design and implement a new admin gallery management page.
+Use .github/skills/SKILL.md to design and implement a new admin gallery management page.
 ```
 
 Or:
@@ -92,5 +92,4 @@ Or:
 ```text
 Follow the admin-workflows skill for this task and implement a reusable gallery management table.
 ```
-
 
